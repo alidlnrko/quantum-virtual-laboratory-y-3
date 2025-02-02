@@ -1,169 +1,150 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Двойной щелевой эксперимент</title>
+    <title>Двойной щелевой опыт Юнга</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #f5f5f5;
             margin: 0;
             padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
-        header {
-            padding: 20px;
-            background-color: #0288d1;
-            color: white;
-        }
-
-        main {
+        canvas {
+            border: 1px solid #000;
             margin-top: 20px;
         }
 
-        .lab {
-            margin: 20px auto;
-            width: 80%;
-            position: relative;
-            background-color: #e3f2fd;
-            border: 2px solid #0288d1;
+        .theory {
+            max-width: 800px;
+            text-align: justify;
             padding: 20px;
-            border-radius: 8px;
         }
 
-        .source {
-            width: 10px;
-            height: 10px;
-            background-color: red;
-            border-radius: 50%;
-            position: absolute;
-            top: 50%;
-            left: 10%;
-            transform: translate(-50%, -50%);
+        .controls {
+            margin: 20px;
         }
 
-        .slits {
-            width: 5px;
-            height: 100px;
-            background-color: white;
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
+        .controls label {
+            margin-right: 10px;
         }
 
-        .slits:first-child {
-            left: 45%;
-        }
-
-        .slits:last-child {
-            left: 55%;
-        }
-
-        .screen {
-            width: 10px;
-            height: 400px;
-            background-color: #cfd8dc;
-            position: absolute;
-            top: 50%;
-            right: 10%;
-            transform: translateY(-50%);
-        }
-
-        .impact {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background-color: black;
-            position: absolute;
-        }
-
-        .interference {
-            height: 400px;
-            width: 200px;
-            position: absolute;
-            right: 5%;
-            background: repeating-linear-gradient(
-                to bottom,
-                rgba(0, 0, 0, 0.3),
-                rgba(0, 0, 0, 0.3) 20px,
-                rgba(255, 255, 255, 0.3) 20px,
-                rgba(255, 255, 255, 0.3) 40px
-            );
-            display: none;
-        }
-
-        button {
-            margin-top: 20px;
-            padding: 10px 20px;
-            border: none;
-            background-color: #0288d1;
-            color: white;
-            font-size: 16px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-
-        button:hover {
-            background-color: #01579b;
+        .controls input {
+            margin-right: 20px;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Двойной щелевой эксперимент</h1>
-        <p>Наблюдайте за интерференцией частиц и волн!</p>
-    </header>
-    <main>
-        <div class="lab">
-            <div class="source"></div>
-            <div class="slits"></div>
-            <div class="slits"></div>
-            <div class="screen"></div>
-            <div class="interference" id="interference"></div>
-        </div>
-        <div class="controls">
-            <button id="waveButton">Волны</button>
-            <button id="particleButton">Частицы</button>
-            <button id="resetButton">Сброс</button>
-        </div>
-    </main>
+    <h1>Двойной щелевой опыт Юнга</h1>
+
+    <div class="theory">
+        <p>
+            Двойной щелевой опыт Юнга продемонстрировал волновую природу света. В этом эксперименте свет проходит через две узкие щели и формирует на экране характерную интерференционную картину с чередующимися полосами света и тьмы. Этот эффект возникает из-за интерференции световых волн, усиливающих или ослабляющих друг друга.
+        </p>
+        <p>
+            Одновременно этот опыт показывает корпускулярную природу света, если рассматривать фотоны как частицы, которые проходят через одну из щелей. Таким образом, данный эксперимент иллюстрирует двойственную природу света.
+        </p>
+    </div>
+
+    <div class="controls">
+        <label for="slitDistance">Расстояние между щелями (px):</label>
+        <input type="range" id="slitDistance" min="50" max="200" value="100">
+
+        <label for="waveLength">Длина волны (px):</label>
+        <input type="range" id="waveLength" min="10" max="50" value="20">
+
+        <label for="particleMode">Режим частиц:</label>
+        <input type="checkbox" id="particleMode">
+    </div>
+
+    <canvas id="slitCanvas" width="800" height="400"></canvas>
+
     <script>
-        const waveButton = document.getElementById('waveButton');
-        const particleButton = document.getElementById('particleButton');
-        const resetButton = document.getElementById('resetButton');
-        const interferencePattern = document.getElementById('interference');
-        const lab = document.querySelector('.lab');
+        const canvas = document.getElementById('slitCanvas');
+        const ctx = canvas.getContext('2d');
 
-        function resetLab() {
-            const impacts = lab.querySelectorAll('.impact');
-            impacts.forEach(impact => impact.remove());
-            interferencePattern.style.display = 'none';
-        }
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
 
-        function showParticles() {
-            resetLab();
-            for (let i = 0; i < 100; i++) {
-                setTimeout(() => {
-                    const impact = document.createElement('div');
-                    impact.className = 'impact';
-                    impact.style.top = `${Math.random() * 100 + 20}%`;
-                    impact.style.left = '90%';
-                    lab.appendChild(impact);
-                }, i * 100);
+        const centerX = canvasWidth / 2;
+        const centerY = canvasHeight / 2;
+
+        const slitDistanceInput = document.getElementById('slitDistance');
+        const waveLengthInput = document.getElementById('waveLength');
+        const particleModeInput = document.getElementById('particleMode');
+
+        let slitDistance = parseInt(slitDistanceInput.value);
+        let waveLength = parseInt(waveLengthInput.value);
+        let particleMode = particleModeInput.checked;
+
+        slitDistanceInput.addEventListener('input', (e) => {
+            slitDistance = parseInt(e.target.value);
+            drawScene();
+        });
+
+        waveLengthInput.addEventListener('input', (e) => {
+            waveLength = parseInt(e.target.value);
+            drawScene();
+        });
+
+        particleModeInput.addEventListener('change', (e) => {
+            particleMode = e.target.checked;
+            drawScene();
+        });
+
+        const drawSlits = () => {
+            ctx.fillStyle = 'black';
+            ctx.fillRect(centerX - slitDistance / 2 - 5, 50, 10, 50);
+            ctx.fillRect(centerX + slitDistance / 2 - 5, 50, 10, 50);
+        };
+
+        const drawParticleBefore = (x, y) => {
+            ctx.fillStyle = 'red';
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+        };
+
+        const drawWaveAfter = () => {
+            const screenY = 350;
+            for (let x = 0; x < canvasWidth; x++) {
+                let intensity = 0;
+                for (let slit of [-slitDistance / 2, slitDistance / 2]) {
+                    const pathDiff = Math.sqrt((x - centerX - slit) ** 2 + (screenY - 50) ** 2);
+                    intensity += Math.sin((2 * Math.PI * pathDiff) / waveLength);
+                }
+
+                intensity = Math.pow(Math.abs(intensity) / 2, 2); // нормализация интенсивности
+
+                ctx.fillStyle = `rgba(0, 0, 255, ${intensity})`;
+                ctx.fillRect(x, screenY, 1, canvasHeight - screenY);
             }
-        }
+        };
 
-        function showWaves() {
-            resetLab();
-            interferencePattern.style.display = 'block';
-        }
+        const drawTransition = () => {
+            const particleX = centerX;
+            const particleY = 200;
 
-        particleButton.addEventListener('click', showParticles);
-        waveButton.addEventListener('click', showWaves);
-        resetButton.addEventListener('click', resetLab);
+            // Draw particle before slits
+            drawParticleBefore(particleX, particleY);
+
+            // Draw slits
+            drawSlits();
+
+            // Draw wave after slits
+            drawWaveAfter();
+        };
+
+        const drawScene = () => {
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            drawTransition();
+        };
+
+        drawScene();
     </script>
 </body>
 </html>
